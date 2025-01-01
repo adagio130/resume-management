@@ -1,0 +1,9 @@
+server:
+    port: 8888
+db:
+    driver: sqlite3
+    dsn: hank:hanktest@tcp(127.0.0.1:3306)/resume?charset=utf8mb4&parseTime=True&loc=Local
+    maxopen: 10
+
+log:
+    level: debug
