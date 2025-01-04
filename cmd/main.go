@@ -15,15 +15,14 @@ import (
 )
 
 func main() {
-	logger, _ := zap.NewProduction()
 	conf := initConfig()
+	logger := initLogger(conf)
 	db := initStorage(conf)
-	defer func() {
-		logger.Info("Server shutdown")
-	}()
 	handler := initHandler(logger, db)
 	server := gin.Default()
-
+	server.POST("/user", func(c *gin.Context) {
+		handler.CreateUser(c)
+	})
 	server.GET("/resume/:id", func(c *gin.Context) {
 		handler.GetResume(c)
 	})
@@ -46,8 +45,10 @@ func main() {
 }
 
 func initHandler(logger *zap.Logger, db *gorm.DB) *internal.Handler {
-	resumeRepo := repo.NewResumeRepository(db)
-	return internal.NewHandler(logger, resumeRepo)
+	resumeRepo := repo.NewResumeRepository(logger, db)
+	userRepo := repo.NewUserRepository(logger, db)
+	service := internal.NewService(logger, userRepo, resumeRepo)
+	return internal.NewHandler(logger, service)
 }
 
 func initConfig() *config.Config {
@@ -65,17 +66,45 @@ func initConfig() *config.Config {
 }
 
 // initStorage initializes the database connection
-func initStorage(config *config.Config) *gorm.DB {
-	db, err := gorm.Open(mysql.Open(config.DB.Dsn), &gorm.Config{})
+func initStorage(configs *config.Config) *gorm.DB {
+	conn, err := gorm.Open(mysql.Open(configs.DB.Dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
-
-	// Migrate the schema
-	err = db.AutoMigrate(&entities.User{})
+	db, err := conn.DB()
+	if err != nil {
+		log.Fatalf("failed to get database: %v", err)
+		return nil
+	}
+	db.SetMaxIdleConns(configs.DB.MaxIdleConns)
+	db.SetMaxOpenConns(configs.DB.MaxOpenConns)
+	db.SetConnMaxLifetime(configs.DB.ConnMaxLifetime)
+	err = conn.AutoMigrate(&entities.User{}, &entities.Resume{}, &entities.Education{}, &entities.Experience{})
 	if err != nil {
 		log.Fatalf("failed to migrate schema: %v", err)
 		return nil
 	}
-	return db
+	return conn
+}
+
+func initLogger(configs *config.Config) *zap.Logger {
+	switch configs.Log.Env {
+	case "dev":
+		logger, err := zap.NewDevelopment()
+		if err != nil {
+			log.Fatalf("failed to create logger: %v", err)
+		}
+		return logger
+	case "test":
+		logger, err := zap.NewDevelopment()
+		if err != nil {
+			log.Fatalf("failed to create logger: %v", err)
+		}
+		return logger
+	}
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatalf("failed to create logger: %v", err)
+	}
+	return logger
 }

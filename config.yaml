@@ -3,7 +3,8 @@ server:
 db:
     driver: sqlite3
     dsn: hank:hanktest@tcp(127.0.0.1:3306)/resume?charset=utf8mb4&parseTime=True&loc=Local
-    maxopen: 10
-
+    max_idle_conns: 10
+    max_open_conns: 10
+    conn_max_lifetime: 10m
 log:
-    level: debug
+    env: dev # dev, test, prod
