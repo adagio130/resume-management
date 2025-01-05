@@ -11,6 +11,7 @@ import (
 	"resume/config"
 	"resume/internal"
 	"resume/internal/entities"
+	"resume/internal/middleware"
 	"resume/internal/repo"
 )
 
@@ -20,6 +21,7 @@ func main() {
 	db := initStorage(conf)
 	handler := initHandler(logger, db)
 	server := gin.Default()
+	server.Use(middleware.ErrorHandler())
 	server.POST("/user", func(c *gin.Context) {
 		handler.CreateUser(c)
 	})
