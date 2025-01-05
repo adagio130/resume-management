@@ -8,6 +8,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
+	"os"
 	"resume/config"
 	"resume/internal"
 	"resume/internal/entities"
@@ -69,7 +70,11 @@ func initConfig() *config.Config {
 
 // initStorage initializes the database connection
 func initStorage(configs *config.Config) *gorm.DB {
-	conn, err := gorm.Open(mysql.Open(configs.DB.Dsn), &gorm.Config{})
+	dsn := os.Getenv("DB_DSN")
+	if dsn == "" {
+		panic("DB_DSN is not set")
+	}
+	conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}

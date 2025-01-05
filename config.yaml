@@ -1,10 +1,10 @@
 server:
-    port: 8888
+  port: 8080
 db:
-    driver: sqlite3
-    dsn: hank:hanktest@tcp(127.0.0.1:3306)/resume?charset=utf8mb4&parseTime=True&loc=Local
-    max_idle_conns: 10
-    max_open_conns: 10
-    conn_max_lifetime: 10m
+  driver: mysql
+  dsn: ${DB_DSN}
+  max_idle_conns: 10
+  max_open_conns: 10
+  conn_max_lifetime: 10m
 log:
-    env: dev # dev, test, prod
+  env: dev # dev, test, prod
