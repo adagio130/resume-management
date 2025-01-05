@@ -37,7 +37,7 @@ func main() {
 	server.DELETE("/resume/:id", func(c *gin.Context) {
 		handler.DeleteResume(c)
 	})
-	server.GET("/resumes", func(c *gin.Context) {
+	server.GET("/resumes/:id", func(c *gin.Context) {
 		handler.GetResumes(c)
 	})
 	err := server.Run(fmt.Sprintf(":%s", conf.Server.Port))

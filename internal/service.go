@@ -10,7 +10,7 @@ import (
 
 type Service interface {
 	CreateUser(user *reqs.CreateUserRequest) (string, error)
-	GetUser(id string) (*models.User, error)
+	ListResume(userId string) ([]*models.Resume, error)
 	CreateResume(resume *reqs.CreateResumeRequest) (string, error)
 	GetResume(id string) (*models.Resume, error)
 	UpdateResume(id string, request *reqs.UpdateResumeRequest) (string, error)
@@ -31,6 +31,16 @@ func NewService(logger *zap.Logger, userRepo repo.UserRepository, ResumeRepo rep
 	}
 }
 
+func (s *service) ListResume(userId string) ([]*models.Resume, error) {
+	result, err := s.resumeRepo.List(userId)
+	if err != nil {
+		s.logger.Error("Failed to list resume", zap.Error(err))
+		return nil, err
+
+	}
+	return result, nil
+}
+
 func (s *service) CreateUser(req *reqs.CreateUserRequest) (string, error) {
 	s.logger.Info("CreateUser")
 	userModel := models.NewUser(req.Name, req.Account, req.Gender, req.Location)
@@ -40,10 +50,6 @@ func (s *service) CreateUser(req *reqs.CreateUserRequest) (string, error) {
 		return "", err
 	}
 	return userId, nil
-}
-
-func (s *service) GetUser(id string) (*models.User, error) {
-	return nil, nil
 }
 
 func (s *service) CreateResume(req *reqs.CreateResumeRequest) (string, error) {
@@ -56,7 +62,7 @@ func (s *service) CreateResume(req *reqs.CreateResumeRequest) (string, error) {
 	if isUserExist == nil {
 		return "", custom_error.GetError(custom_error.ErrUserNotFound)
 	}
-	resumeModel := models.NewResumeFromReqs(req.UserID, req.Title, req.Email, req.Phone, req.Experience, req.Skills, req.Education)
+	resumeModel := models.NewResumeFromReqs("", req.UserID, req.Title, req.Email, req.Phone, req.Experience, req.Skills, req.Education)
 	resumeId, err := s.resumeRepo.Create(resumeModel)
 	if err != nil {
 		s.logger.Error("Failed to create resume", zap.Error(err))
@@ -77,10 +83,38 @@ func (s *service) GetResume(id string) (*models.Resume, error) {
 
 func (s *service) UpdateResume(id string, req *reqs.UpdateResumeRequest) (string, error) {
 	s.logger.Info("UpdateResume")
-
-	return "", nil
+	resume, err := s.resumeRepo.Find(id)
+	if err != nil {
+		s.logger.Error("Failed to get resume", zap.Error(err))
+		return "", err
+	}
+	if resume == nil {
+		return "", custom_error.GetError(custom_error.ErrResumeNotFound)
+	}
+	resumeModel := models.NewResumeFromReqs(
+		id,
+		req.UserID,
+		req.Title,
+		req.Email,
+		req.Phone,
+		req.Experience,
+		req.Skills,
+		req.Education)
+	result, err := s.resumeRepo.Update(id, resumeModel)
+	if err != nil {
+		s.logger.Error("Failed to update resume", zap.Error(err))
+		return "", err
+	}
+	return result, nil
 }
 
 func (s *service) DeleteResume(id string) error {
+	s.logger.Info("DeleteResume")
+
+	err := s.resumeRepo.Delete(id)
+	if err != nil {
+		s.logger.Error("Failed to delete resume", zap.Error(err))
+		return err
+	}
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"net/http"
+	"resume/internal/models"
 	"resume/internal/reqs"
 
 	customErrors "resume/internal/errors"
@@ -67,16 +68,59 @@ func (h *Handler) CreateResume(c *gin.Context) {
 }
 
 func (h *Handler) UpdateResume(c *gin.Context) {
-	c.AbortWithStatus(http.StatusOK)
-
+	resumeId := c.Param("id")
+	if resumeId == "" {
+		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		return
+	}
+	var updateResumeReq reqs.UpdateResumeRequest
+	if err := c.BindJSON(&updateResumeReq); err != nil {
+		h.logger.Error("Failed to bind JSON", zap.Error(err))
+		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		return
+	}
+	if err := validate.Struct(&updateResumeReq); err != nil {
+		h.logger.Error("Validation failed", zap.Error(err))
+		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		return
+	}
+	resumeId, err := h.service.UpdateResume(resumeId, &updateResumeReq)
+	if err != nil {
+		h.logger.Error("Failed to update resume", zap.Error(err))
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"id": resumeId})
 }
 
 func (h *Handler) DeleteResume(c *gin.Context) {
-
+	resumeId := c.Param("id")
+	if resumeId == "" {
+		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		return
+	}
+	err := h.service.DeleteResume(resumeId)
+	if err != nil {
+		h.logger.Error("Failed to delete resume", zap.Error(err))
+		c.Error(err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 func (h *Handler) GetResumes(c *gin.Context) {
-
+	userId := c.Param("id")
+	if userId == "" {
+		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		return
+	}
+	resumes, err := h.service.ListResume(userId)
+	if err != nil {
+		h.logger.Error("Failed to get resumes", zap.Error(err))
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, map[string][]*models.Resume{"resumes": resumes})
 }
 
 func (h *Handler) CreateUser(c *gin.Context) {

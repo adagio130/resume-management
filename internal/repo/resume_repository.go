@@ -12,7 +12,7 @@ type ResumeRepository interface {
 	Find(id string) (*models.Resume, error)
 	List(userId string) ([]*models.Resume, error)
 	Create(resume *models.Resume) (string, error)
-	Update(id string, resume *models.Resume) error
+	Update(id string, resume *models.Resume) (string, error)
 	Delete(id string) error
 }
 
@@ -86,7 +86,29 @@ func (r *resumeRepository) Find(id string) (*models.Resume, error) {
 }
 
 func (r *resumeRepository) List(userId string) ([]*models.Resume, error) {
-	return nil, nil
+	r.logger.Info("List")
+
+	var results []entities.Resume
+
+	err := r.conn.Model(&entities.Resume{}).
+		Select("id, title").
+		Where("user_id = ?", userId).
+		Find(&results).Error
+
+	if err != nil {
+		r.logger.Error("Failed to list resumes", zap.Error(err))
+		return nil, err
+	}
+
+	var resumes []*models.Resume
+	for _, res := range results {
+		resumes = append(resumes, &models.Resume{
+			ID:    res.ID,
+			Title: res.Title,
+		})
+	}
+
+	return resumes, nil
 }
 
 func (r *resumeRepository) Create(resume *models.Resume) (string, error) {
@@ -132,10 +154,59 @@ func (r *resumeRepository) Create(resume *models.Resume) (string, error) {
 	return resume.ID, nil
 }
 
-func (r *resumeRepository) Update(id string, resume *models.Resume) error {
-	return nil
+func (r *resumeRepository) Update(id string, resume *models.Resume) (string, error) {
+	r.logger.Info("Update")
+	resumeEntity := entities.NewResumeEntity(resume.ID, resume.UserID, resume.Title, resume.Email, resume.Phone, resume.Skills)
+	experiences := make([]*entities.Experience, len(resume.Experience))
+	i := 0
+	for _, exp := range resume.Experience {
+		experiences[i] = entities.NewExperienceEntity(exp.ID, resume.ID, exp.Company, exp.Position, exp.IsPresent, exp.StartDate, exp.EndDate, exp.Description)
+		i++
+	}
+	educations := make([]*entities.Education, len(resume.Education))
+	i = 0
+	for _, edu := range resume.Education {
+		educations[i] = entities.NewEducationEntity(edu.ID, resume.ID, edu.School, edu.Major, edu.Degree, edu.StartDate, edu.EndDate)
+		i++
+	}
+	err := r.conn.Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("id = ?", id).Updates(resumeEntity)
+		if result.Error != nil {
+			r.logger.Error("Failed to update resume", zap.Error(result.Error))
+			return result.Error
+		}
+		for _, exp := range experiences {
+			result = tx.Where("id = ?", exp.ID).Updates(exp)
+			if result.Error != nil {
+				r.logger.Error("Failed to update experience", zap.Error(result.Error))
+				return result.Error
+			}
+		}
+		for _, edu := range educations {
+			result = tx.Where("id = ?", edu.ID).Updates(edu)
+			if result.Error != nil {
+				r.logger.Error("Failed to update education", zap.Error(result.Error))
+				return result.Error
+			}
+		}
+		return nil
+
+	})
+	if err != nil {
+		return "", err
+	}
+	return resume.ID, nil
 }
 
 func (r *resumeRepository) Delete(id string) error {
+	r.logger.Info("Delete")
+	result := r.conn.Where("id = ?", id).Delete(&entities.Resume{})
+	if result.Error != nil {
+		r.logger.Error("Failed to delete resume", zap.Error(result.Error))
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return custom_error.GetError(custom_error.ErrResumeNotFound)
+	}
 	return nil
 }

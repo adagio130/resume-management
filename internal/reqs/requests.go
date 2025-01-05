@@ -34,6 +34,7 @@ type CreateResumeRequest struct {
 }
 
 type Experience struct {
+	ID string `json:"id,omitempty"`
 	// Company is the company of the experience.
 	Company string `json:"company" validate:"required"`
 	// Position is the position of the experience.
@@ -49,6 +50,7 @@ type Experience struct {
 }
 
 type Education struct {
+	ID string `json:"id,omitempty"`
 	// School is the school of the education.
 	School string `json:"school" validate:"required"`
 	// Major is the major of the education.
@@ -61,58 +63,22 @@ type Education struct {
 	EndDate string `json:"end_date"`
 }
 
-// GetResumeRequest represents a request to get a resume.
-type GetResumeRequest struct {
-	// ID is the ID of the resume.
-	ID string `json:"id" validate:"required"`
-}
-
 // UpdateResumeRequest represents a request to update a resume.
 type UpdateResumeRequest struct {
 	// ID is the ID of the resume.
 	ID string `json:"id" validate:"required`
-	// Name is the name of the resume.
-	UpdateRequest *CreateResumeRequest `json:"update_request" validate:"required"`
-}
-
-// DeleteResumeRequest represents a request to delete a resume.
-type DeleteResumeRequest struct {
-	// ID is the ID of the resume.
-	ID string `json:"id" validate:"required"`
-}
-
-// ListResumesRequest represents a request to list resumes.
-type ListResumesRequest struct {
 	// UserID is the ID of the user.
 	UserID string `json:"user_id" validate:"required"`
-}
-
-// ErrorResponse represents an error response.
-type ErrorResponse struct {
-	// Message is the error message.
-	Message string `json:"message"`
-}
-
-// CreateResumeResponse represents a response to create a resume.
-type CreateResumeResponse struct {
-	// ID is the ID of the resume.
-	ID string `json:"id"`
-}
-
-// UpdateResumeResponse represents a response to update a resume.
-type UpdateResumeResponse struct {
-	// ID is the ID of the resume.
-	ID string `json:"id"`
-}
-
-// DeleteResumeResponse represents a response to delete a resume.
-type DeleteResumeResponse struct {
-	// ID is the ID of the resume.
-	ID string `json:"id"`
-}
-
-// CreateUserResponse represents a response to create a user.
-type CreateUserResponse struct {
-	// ID is the ID of the user.
-	ID string `json:"id"`
+	// Title is the name of the resume.
+	Title string `json:"title" validate:"required"`
+	// Email is the email of the resume.
+	Email string `json:"email" validate:"required,email"`
+	// Phone is the phone number of the resume.
+	Phone string `json:"phone" validate:"required"`
+	// Experience is the experience of the resume.
+	Experience []*Experience `json:"experience"`
+	// Skills is the skills of the resume.
+	Skills []string `json:"skills"`
+	// Education is the education of the resume.
+	Education []*Education `json:"education"`
 }
