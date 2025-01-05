@@ -1,7 +1,5 @@
 package reqs
 
-import "resume/internal/models"
-
 // CreateUserRequest represents a request to create a user.
 type CreateUserRequest struct {
 	// Name is the name of the user.
@@ -89,12 +87,6 @@ type ListResumesRequest struct {
 	UserID string `json:"user_id" validate:"required"`
 }
 
-// ListResumesResponse represents a response to list resumes.
-type ListResumesResponse struct {
-	// Resumes is the list of resumes.
-	Resumes []*models.Resume `json:"resumes"`
-}
-
 // ErrorResponse represents an error response.
 type ErrorResponse struct {
 	// Message is the error message.
@@ -105,12 +97,6 @@ type ErrorResponse struct {
 type CreateResumeResponse struct {
 	// ID is the ID of the resume.
 	ID string `json:"id"`
-}
-
-// GetResumeResponse represents a response to get a resume.
-type GetResumeResponse struct {
-	// Resume is the resume.
-	Resume *models.Resume `json:"resume"`
 }
 
 // UpdateResumeResponse represents a response to update a resume.
@@ -129,10 +115,4 @@ type DeleteResumeResponse struct {
 type CreateUserResponse struct {
 	// ID is the ID of the user.
 	ID string `json:"id"`
-}
-
-// GetUserResponse represents a response to get a user.
-type GetUserResponse struct {
-	// User is the user.
-	User *models.User `json:"user"`
 }

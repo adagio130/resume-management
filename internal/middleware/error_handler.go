@@ -11,11 +11,16 @@ import (
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
+
+		if c.Writer.Written() {
+			return
+		}
+
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last().Err
 			var customErr *custom_error.CustomError
 			if errors.As(err, &customErr) {
-				c.JSON(customErr.StatusCode, gin.H{"error": customErr.Error()})
+				c.JSON(customErr.StatusCode, map[string]string{"error": customErr.Error()})
 			} else {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			}

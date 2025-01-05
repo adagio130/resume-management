@@ -1,12 +1,8 @@
 package models
 
 import (
-	"errors"
 	"github.com/google/uuid"
 )
-
-var ErrUserNotFound = errors.New("user not found")
-var ErrUserExist = errors.New("user exists")
 
 type User struct {
 	ID       string `json:"id"`
@@ -25,5 +21,4 @@ func NewUser(name, account, gender, location string) *User {
 		Gender:   gender,
 		Location: location,
 	}
-
 }

@@ -1,12 +1,10 @@
 package internal
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"net/http"
-	"resume/internal/models"
 	"resume/internal/reqs"
 
 	customErrors "resume/internal/errors"
@@ -29,10 +27,19 @@ func NewHandler(logger *zap.Logger, service Service) *Handler {
 func (h *Handler) GetResume(c *gin.Context) {
 	resumeId := c.Param("id")
 	if resumeId == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
 		return
 	}
-
+	resume, err := h.service.GetResume(resumeId)
+	if err != nil {
+		h.logger.Error("Failed to get resume", zap.Error(err))
+		c.Error(err)
+	}
+	if resume == nil {
+		c.Error(customErrors.GetError(customErrors.ErrResumeNotFound))
+		return
+	}
+	c.JSON(http.StatusOK, resume)
 }
 
 func (h *Handler) CreateResume(c *gin.Context) {
@@ -53,7 +60,7 @@ func (h *Handler) CreateResume(c *gin.Context) {
 	resumeId, err := h.service.CreateResume(&createResumeReq)
 	if err != nil {
 		h.logger.Error("Failed to create resume", zap.Error(err))
-		c.Error(customErrors.NewCustomError(http.StatusInternalServerError, customErrors.ErrCustom, err.Error()))
+		c.Error(err)
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": resumeId})
@@ -88,11 +95,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	userId, err := h.service.CreateUser(&createUserReq)
 	if err != nil {
 		h.logger.Error("Failed to create user", zap.Error(err))
-		if errors.Is(err, models.ErrUserExist) {
-			c.Error(customErrors.GetError(customErrors.ErrUserExist))
-			return
-		}
-		c.Error(customErrors.NewCustomError(http.StatusInternalServerError, customErrors.ErrCustom, err.Error()))
+		c.Error(err)
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": userId})

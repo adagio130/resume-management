@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"errors"
 	"go.uber.org/zap"
+	custom_error "resume/internal/errors"
 	"resume/internal/models"
 	"resume/internal/repo"
 	"resume/internal/reqs"
@@ -13,7 +13,7 @@ type Service interface {
 	GetUser(id string) (*models.User, error)
 	CreateResume(resume *reqs.CreateResumeRequest) (string, error)
 	GetResume(id string) (*models.Resume, error)
-	UpdateResume(request *reqs.UpdateResumeRequest) (string, error)
+	UpdateResume(id string, request *reqs.UpdateResumeRequest) (string, error)
 	DeleteResume(id string) error
 }
 
@@ -36,9 +36,6 @@ func (s *service) CreateUser(req *reqs.CreateUserRequest) (string, error) {
 	userModel := models.NewUser(req.Name, req.Account, req.Gender, req.Location)
 	userId, err := s.userRepo.CreateUser(userModel)
 	if err != nil {
-		if errors.Is(err, models.ErrUserExist) {
-			return "", models.ErrUserExist
-		}
 		s.logger.Error("Failed to create user", zap.Error(err))
 		return "", err
 	}
@@ -50,14 +47,37 @@ func (s *service) GetUser(id string) (*models.User, error) {
 }
 
 func (s *service) CreateResume(req *reqs.CreateResumeRequest) (string, error) {
-	return "", nil
+	s.logger.Info("CreateResume")
+	isUserExist, err := s.userRepo.GetUser(req.UserID)
+	if err != nil {
+		s.logger.Error("Failed to get user", zap.Error(err))
+		return "", err
+	}
+	if isUserExist == nil {
+		return "", custom_error.GetError(custom_error.ErrUserNotFound)
+	}
+	resumeModel := models.NewResumeFromReqs(req.UserID, req.Title, req.Email, req.Phone, req.Experience, req.Skills, req.Education)
+	resumeId, err := s.resumeRepo.Create(resumeModel)
+	if err != nil {
+		s.logger.Error("Failed to create resume", zap.Error(err))
+		return "", err
+	}
+	return resumeId, nil
 }
 
 func (s *service) GetResume(id string) (*models.Resume, error) {
-	return nil, nil
+	s.logger.Info("GetResume")
+	resume, err := s.resumeRepo.Find(id)
+	if err != nil {
+		s.logger.Error("Failed to get resume", zap.Error(err))
+		return nil, err
+	}
+	return resume, nil
 }
 
-func (s *service) UpdateResume(req *reqs.UpdateResumeRequest) (string, error) {
+func (s *service) UpdateResume(id string, req *reqs.UpdateResumeRequest) (string, error) {
+	s.logger.Info("UpdateResume")
+
 	return "", nil
 }
 
