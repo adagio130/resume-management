@@ -35,7 +35,6 @@ type Education struct {
 	EndDate   string `json:"end_date"`
 }
 
-// NewResume creates a new resume.
 func NewResumeFromReqs(resumeId, userID, title, email, phone string, experience []*reqs.Experience, skills []string, education []*reqs.Education) *Resume {
 	if resumeId == "" {
 		resumeId = uuid.New().String()

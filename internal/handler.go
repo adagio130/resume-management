@@ -8,7 +8,7 @@ import (
 	"resume/internal/models"
 	"resume/internal/reqs"
 
-	customErrors "resume/internal/errors"
+	customerors "resume/internal/errors"
 )
 
 var validate = validator.New()
@@ -28,7 +28,7 @@ func NewHandler(logger *zap.Logger, service Service) *Handler {
 func (h *Handler) GetResume(c *gin.Context) {
 	resumeId := c.Param("id")
 	if resumeId == "" {
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	resume, err := h.service.GetResume(resumeId)
@@ -37,7 +37,7 @@ func (h *Handler) GetResume(c *gin.Context) {
 		c.Error(err)
 	}
 	if resume == nil {
-		c.Error(customErrors.GetError(customErrors.ErrResumeNotFound))
+		c.Error(customerors.GetError(customerors.ErrResumeNotFound))
 		return
 	}
 	c.JSON(http.StatusOK, resume)
@@ -48,13 +48,13 @@ func (h *Handler) CreateResume(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	if err := c.BindJSON(&createResumeReq); err != nil {
 		h.logger.Error("Failed to bind JSON", zap.Error(err))
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 
 	if err := validate.Struct(&createResumeReq); err != nil {
 		h.logger.Error("Validation failed", zap.Error(err))
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 
@@ -70,18 +70,18 @@ func (h *Handler) CreateResume(c *gin.Context) {
 func (h *Handler) UpdateResume(c *gin.Context) {
 	resumeId := c.Param("id")
 	if resumeId == "" {
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	var updateResumeReq reqs.UpdateResumeRequest
 	if err := c.BindJSON(&updateResumeReq); err != nil {
 		h.logger.Error("Failed to bind JSON", zap.Error(err))
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	if err := validate.Struct(&updateResumeReq); err != nil {
 		h.logger.Error("Validation failed", zap.Error(err))
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	resumeId, err := h.service.UpdateResume(resumeId, &updateResumeReq)
@@ -96,7 +96,7 @@ func (h *Handler) UpdateResume(c *gin.Context) {
 func (h *Handler) DeleteResume(c *gin.Context) {
 	resumeId := c.Param("id")
 	if resumeId == "" {
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	err := h.service.DeleteResume(resumeId)
@@ -111,7 +111,7 @@ func (h *Handler) DeleteResume(c *gin.Context) {
 func (h *Handler) GetResumes(c *gin.Context) {
 	userId := c.Param("id")
 	if userId == "" {
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	resumes, err := h.service.ListResume(userId)
@@ -128,12 +128,12 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	if err := c.BindJSON(&createUserReq); err != nil {
 		h.logger.Error("Failed to bind JSON", zap.Error(err))
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	if err := validate.Struct(&createUserReq); err != nil {
 		h.logger.Error("Validation failed", zap.Error(err))
-		c.Error(customErrors.GetError(customErrors.ErrBadRequest))
+		c.Error(customerors.GetError(customerors.ErrBadRequest))
 		return
 	}
 	userId, err := h.service.CreateUser(&createUserReq)

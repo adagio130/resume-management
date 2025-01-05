@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	custom_error "resume/internal/errors"
+	customerror "resume/internal/errors"
 )
 
 func ErrorHandler() gin.HandlerFunc {
@@ -18,7 +18,7 @@ func ErrorHandler() gin.HandlerFunc {
 
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last().Err
-			var customErr *custom_error.CustomError
+			var customErr *customerror.CustomError
 			if errors.As(err, &customErr) {
 				c.JSON(customErr.StatusCode, map[string]string{"error": customErr.Error()})
 			} else {

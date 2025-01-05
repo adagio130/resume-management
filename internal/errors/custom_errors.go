@@ -39,8 +39,3 @@ func (e *CustomError) Error() string {
 func GetError(code int) *CustomError {
 	return definedErrors[code]
 }
-
-func IsCustomError(err error) bool {
-	_, ok := err.(*CustomError)
-	return ok
-}

@@ -2,7 +2,7 @@ package internal
 
 import (
 	"go.uber.org/zap"
-	custom_error "resume/internal/errors"
+	customerror "resume/internal/errors"
 	"resume/internal/models"
 	"resume/internal/repo"
 	"resume/internal/reqs"
@@ -60,7 +60,7 @@ func (s *service) CreateResume(req *reqs.CreateResumeRequest) (string, error) {
 		return "", err
 	}
 	if isUserExist == nil {
-		return "", custom_error.GetError(custom_error.ErrUserNotFound)
+		return "", customerror.GetError(customerror.ErrUserNotFound)
 	}
 	resumeModel := models.NewResumeFromReqs("", req.UserID, req.Title, req.Email, req.Phone, req.Experience, req.Skills, req.Education)
 	resumeId, err := s.resumeRepo.Create(resumeModel)
@@ -89,7 +89,7 @@ func (s *service) UpdateResume(id string, req *reqs.UpdateResumeRequest) (string
 		return "", err
 	}
 	if resume == nil {
-		return "", custom_error.GetError(custom_error.ErrResumeNotFound)
+		return "", customerror.GetError(customerror.ErrResumeNotFound)
 	}
 	resumeModel := models.NewResumeFromReqs(
 		id,

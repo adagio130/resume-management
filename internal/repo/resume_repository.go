@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"resume/internal/entities"
-	custom_error "resume/internal/errors"
+	customerror "resume/internal/errors"
 	"resume/internal/models"
 )
 
@@ -37,7 +37,7 @@ func (r *resumeRepository) Find(id string) (*models.Resume, error) {
 		return nil, result.Error
 	}
 	if result.RowsAffected == 0 {
-		return nil, custom_error.GetError(custom_error.ErrResumeNotFound)
+		return nil, customerror.GetError(customerror.ErrResumeNotFound)
 	}
 	resume := &models.Resume{
 		ID:         entity.ID,
@@ -206,7 +206,7 @@ func (r *resumeRepository) Delete(id string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return custom_error.GetError(custom_error.ErrResumeNotFound)
+		return customerror.GetError(customerror.ErrResumeNotFound)
 	}
 	return nil
 }

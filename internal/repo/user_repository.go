@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"resume/internal/entities"
-	custom_error "resume/internal/errors"
+	customerror "resume/internal/errors"
 	"resume/internal/models"
 	"strings"
 )
@@ -32,7 +32,7 @@ func (u *userRepo) CreateUser(user *models.User) (string, error) {
 	if result.Error != nil {
 		u.logger.Error("Failed to create user", zap.Error(result.Error))
 		if strings.Contains(result.Error.Error(), "1062") {
-			return "", custom_error.GetError(custom_error.ErrUserExist)
+			return "", customerror.GetError(customerror.ErrUserExist)
 		}
 		return "", result.Error
 	}
@@ -48,7 +48,7 @@ func (u *userRepo) GetUser(id string) (*models.User, error) {
 		return nil, result.Error
 	}
 	if result.RowsAffected == 0 {
-		return nil, custom_error.GetError(custom_error.ErrUserNotFound)
+		return nil, customerror.GetError(customerror.ErrUserNotFound)
 	}
 	model := &models.User{
 		ID:       entity.ID,
