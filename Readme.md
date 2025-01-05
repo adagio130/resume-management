@@ -294,13 +294,6 @@ curl -X PUT http://localhost:8080/resume
    ```bash
    go run cmd/main.go
    ```
-
-2. Run database migrations:
-
-   ```bash
-   make migrate
-   ```
-
 ---
 
 ## Technologies Used
